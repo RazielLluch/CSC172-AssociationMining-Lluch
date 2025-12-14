@@ -215,6 +215,58 @@ def clean_gender(df: pd.DataFrame) -> pd.DataFrame:
     print("[INFO] Gender column cleaned.")
     return df
 
+def encode_gender_binary(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Convert Gender column into binary columns:
+    Gender_Male, Gender_Female, Gender_Other
+    Suitable for Apriori association mining.
+    """
+    df = df.copy()
+
+    if "Gender" not in df.columns:
+        print("[WARNING] 'Gender' column not found. Skipping gender encoding.")
+        return df
+
+    # Normalize values
+    series = (
+        df["Gender"]
+        .astype(str)
+        .str.strip()
+        .str.lower()
+    )
+
+    mapping = {
+        "male": "Male",
+        "m": "Male",
+        "female": "Female",
+        "f": "Female",
+        "other": "Other",
+        "prefer not to say": "Other"
+    }
+
+    normalized = series.replace(mapping)
+
+    # One-hot encode
+    gender_dummies = pd.get_dummies(
+        normalized,
+        prefix="Gender"
+    )
+
+    # Ensure all expected columns exist
+    for col in ["Gender_Male", "Gender_Female", "Gender_Other"]:
+        if col not in gender_dummies.columns:
+            gender_dummies[col] = 0
+
+    # Convert to boolean (important for Apriori clarity)
+    gender_dummies = gender_dummies.astype(bool)
+
+    # Drop original column and concat
+    df = df.drop(columns=["Gender"])
+    df = pd.concat([df, gender_dummies], axis=1)
+
+    print("[INFO] Gender column converted to binary columns.")
+    return df
+
 def clean_gaming_frequency(df: pd.DataFrame) -> pd.DataFrame:
     """
     Standardize the 'How often do you play video games?' column
@@ -700,6 +752,7 @@ def preprocess_pipeline(filename: str) -> pd.DataFrame:
     df = categorize_age(df)
     df = clean_location(df)
     df = clean_gender(df)
+    df = encode_gender_binary(df)
     df = clean_gaming_frequency(df)
     df = clean_gaming_hours(df)
     df = encode_gaming_hours_binary(df)

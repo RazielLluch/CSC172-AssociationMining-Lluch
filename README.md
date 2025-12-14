@@ -64,7 +64,7 @@ Game developers and platform owners need to understand which combinations of pla
 ## 2. Dataset Description
 ### 2.1 Source and Acquisition
 **Source:** [Gaming Preferences and Habits: Player Survey 2024 - Kaggle](https://www.kaggle.com/datasets/pranshudev/gaming-preferences-and-habits-player-survey-2024)  
-**Size:** 500 transactions, 69 unique items  
+**Size:** 500 transactions, 71 unique items  
 **Format:** Respondent ID + full set of survey answers → transaction of binary items (one row per player in basket format).
 
 ### 2.2 Data Structure
