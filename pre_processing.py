@@ -291,6 +291,37 @@ def clean_gaming_hours(df: pd.DataFrame) -> pd.DataFrame:
     print(f"[INFO] '{original_col}' column cleaned and renamed -> '{new_col}'.")
     return df
 
+def encode_gaming_hours_binary(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Convert the 'Gaming_Hours' categorical column into binary indicator columns.
+    Suitable for association rule mining.
+    """
+    df = df.copy()
+
+    col = "Gaming_Hours"
+
+    if col not in df.columns:
+        print(f"[WARNING] '{col}' column not found. Skipping binary encoding.")
+        return df
+
+    categories = [
+        "0-1 hour",
+        "1-5 hours",
+        "5-10 hours",
+        "10-20 hours",
+        "20+ hours"
+    ]
+
+    for category in categories:
+        binary_col = f"Gaming_Hours_{category.replace(' ', '_').replace('+', 'plus')}"
+        df[binary_col] = (df[col] == category).astype(int)
+
+    # Optional: drop the original categorical column
+    df = df.drop(columns=[col])
+
+    print("[INFO] 'Gaming_Hours' converted to binary columns.")
+    return df
+
 def clean_device_used(df: pd.DataFrame) -> pd.DataFrame:
     """
     Converts a 'Check all that apply' devices column into multiple binary columns.
@@ -433,6 +464,54 @@ def clean_favorite_game(df: pd.DataFrame) -> pd.DataFrame:
     df[new_col] = df[new_col].fillna("Unknown")
 
     print(f"[INFO] '{original_col}' column cleaned and renamed -> '{new_col}'.")
+    return df
+
+def encode_favorite_games_binary(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Convert the 'Favorite_Game' column into binary columns for each game.
+    Handles combined entries (e.g., 'BGMI / COC / Chess').
+    """
+    df = df.copy()
+
+    col = "Favorite_Game"
+
+    if col not in df.columns:
+        print(f"[WARNING] '{col}' column not found. Skipping favorite game encoding.")
+        return df
+
+    # Split combined values into lists
+    games_series = (
+        df[col]
+        .astype(str)
+        .str.split(r"\s*/\s*")
+    )
+
+    # Get unique game names (excluding Unknown)
+    unique_games = sorted({
+        game
+        for games in games_series
+        for game in games
+        if game != "Unknown"
+    })
+
+    # Create binary columns
+    for game in unique_games:
+        safe_name = (
+            game.lower()
+            .replace(" ", "_")
+            .replace("+", "plus")
+        )
+        binary_col = f"Favorite_Game_{safe_name}"
+
+        df[binary_col] = games_series.apply(lambda x: int(game in x))
+
+    # Optional: keep Unknown as its own flag
+    df["Favorite_Game_unknown"] = (df[col] == "Unknown").astype(int)
+
+    # Drop original categorical column
+    df = df.drop(columns=[col])
+
+    print("[INFO] 'Favorite_Game' converted to binary columns.")
     return df
 
 def clean_game_discovery(df: pd.DataFrame) -> pd.DataFrame:
@@ -623,9 +702,11 @@ def preprocess_pipeline(filename: str) -> pd.DataFrame:
     df = clean_gender(df)
     df = clean_gaming_frequency(df)
     df = clean_gaming_hours(df)
+    df = encode_gaming_hours_binary(df)
     df = clean_device_used(df)
     df = clean_game_genres(df)
     df = clean_favorite_game(df)
+    df = encode_favorite_games_binary(df)
     df = clean_game_discovery(df)
     df = clean_game_mode_pref(df)
     df = clean_monthly_spend(df)

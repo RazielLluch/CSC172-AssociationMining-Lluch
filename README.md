@@ -4,6 +4,8 @@
 **Student:** Josiah Raziel S. Lluch, 2022-0834  
 **Semester:** AY 2025-2026 Sem 1
 
+[![Python](https://img.shields.io/badge/Python-3.13.5-blue)](https://python.org) [![pandas](https://img.shields.io/badge/pandas-2.3.3-brightgreen)](https://pandas.pydata.org/) [![mlxtend](https://img.shields.io/badge/mlxtend-0.23.4-blue)](https://rasbt.github.io/mlxtend/)
+
 ## Abstract
 This project applies association rule mining with the Apriori algorithm to a gaming survey dataset to uncover patterns in players’ preferences and habits. Each respondent’s answers (e.g., preferred genres, platforms, playstyle, location, time spent gaming, and spending behavior) are transformed into a set of binary items and analyzed as a transaction. Using Apriori, the project extracts frequent itemsets and high-quality association rules evaluated by support, confidence, and lift to reveal which combinations of characteristics tend to co‑occur among gamers. The results highlight interpretable player “personas” and preference bundles that can inform game design, content recommendations, and targeted marketing strategies.
 
@@ -62,7 +64,7 @@ Game developers and platform owners need to understand which combinations of pla
 ## 2. Dataset Description
 ### 2.1 Source and Acquisition
 **Source:** [Gaming Preferences and Habits: Player Survey 2024 - Kaggle](https://www.kaggle.com/datasets/pranshudev/gaming-preferences-and-habits-player-survey-2024)  
-**Size:** 500 transactions, 47 unique items  
+**Size:** 500 transactions, 69 unique items  
 **Format:** Respondent ID + full set of survey answers → transaction of binary items (one row per player in basket format).
 
 ### 2.2 Data Structure
