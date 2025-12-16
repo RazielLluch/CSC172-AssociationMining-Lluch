@@ -742,6 +742,30 @@ def clean_play_reason(df: pd.DataFrame) -> pd.DataFrame:
     print(f"[INFO] '{original_col}' column cleaned and expanded into one-hot reason columns.")
     return df
 
+def prune_items_by_support(df, min_support):
+    support = df.mean()
+    kept = support[support >= min_support].index
+    dropped = support[support < min_support].index
+
+    print(f"Support threshold: {min_support}")
+    print(f"Items kept: {len(kept)}")
+    print(f"Items dropped: {len(dropped)}")
+
+    return df[kept], support
+
+def prune_zero_support_items(df: pd.DataFrame) -> pd.DataFrame:
+    support = df.mean()
+
+    kept = support[support > 0].index
+    dropped = support[support == 0].index
+
+    return df[kept], dropped
+
+def one_hot_encode_df(df: pd.DataFrame) -> pd.DataFrame:
+    df = df.copy()
+
+    df = df.astype(int)
+    return df
 
 def preprocess_pipeline(filename: str) -> pd.DataFrame:
     filepath = os.path.join("data", filename)
@@ -764,6 +788,10 @@ def preprocess_pipeline(filename: str) -> pd.DataFrame:
     df = clean_game_mode_pref(df)
     df = clean_monthly_spend(df)
     df = clean_play_reason(df)
+    df, dropped = prune_zero_support_items(df)
+
+    #ensure the columns are one-hot encodec(0 and 1 values only)
+    df = one_hot_encode_df(df)
     
 
     print("[INFO] Preprocessing pipeline complete.")
