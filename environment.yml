@@ -3,9 +3,9 @@ channels:
   - defaults
   - conda-forge
 dependencies:
-  - python=3.11
-  - pandas
-  - numpy
-  - mlxtend
+  - python=3.13.5
+  - pandas=2.3.3
+  - numpy=2.3.5
+  - mlxtend=0.23.4
   - jupyter
   - ipykernel

@@ -476,8 +476,8 @@ def clean_game_genres(df: pd.DataFrame) -> pd.DataFrame:
 
 def clean_favorite_game(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Standardize the 'What is your favorite game?' column as categorical
-    and rename it to 'Favorite_Game'.
+    Normalize the 'What is your favorite game?' column into
+    atomic game names (comma-separated allowed).
     """
     df = df.copy()
     original_col = "What is your favorite game?"
@@ -487,58 +487,73 @@ def clean_favorite_game(df: pd.DataFrame) -> pd.DataFrame:
         print(f"[WARNING] '{original_col}' column not found. Skipping favorite game cleaning.")
         return df
 
-    # Strip whitespace and lowercase
-    series = df.pop(original_col).astype(str).str.strip().str.lower()
+    series = (
+        df.pop(original_col)
+        .astype(str)
+        .str.lower()
+        .str.strip()
+    )
 
-    # Map known duplicates to standard names
-    mapping = {
-        "call of duty": "Call of Duty",
-        "bgmi": "BGMI",
-        "bgmi, coc, chess": "BGMI / COC / Chess",
-        "solo leveling arise": "Solo Leveling",
-        "solo levelling": "Solo Leveling",
-        "efootball": "Efootball",
-        "fc mobile": "FC Mobile",
-        "wukong": "Wukong",
-        "fornite": "Fortnite",
-        "wuthering waves": "Wuthering Waves",
-        "wuther waves": "Wuthering Waves",
-        "rhythm rush lite": "Rhythm Rush Lite",
-        "red dead redemption 2": "Red Dead Redemption 2",
-        "chess and clash of clans": "Chess / Clash of Clans",
-        "god of war ragnarok": "God of War Ragnarok",
-    }
+    import re
 
-    df[new_col] = series.replace(mapping)
+    def normalize_games(val):
+        if not isinstance(val, str):
+            return ["Unknown"]
 
-    # Fill empty or unknown entries with 'Unknown'
-    df[new_col] = df[new_col].replace({"": "Unknown"})
-    df[new_col] = df[new_col].fillna("Unknown")
+        val = val.strip().lower()
 
-    print(f"[INFO] '{original_col}' column cleaned and renamed -> '{new_col}'.")
+        if val in ("", "nan", "many"):
+            return ["Unknown"]
+
+        # Split on commas, "and", "&", or "/"
+        raw_games = re.split(r",|\band\b|&|/", val)
+
+        mapping = {
+            "call of duty": "Call of Duty",
+            "bgmi": "BGMI",
+            "coc": "Clash of Clans",
+            "clash of clans": "Clash of Clans",
+            "chess": "Chess",
+            "solo leveling arise": "Solo Leveling",
+            "solo levelling": "Solo Leveling",
+            "efootball": "Efootball",
+            "fc mobile": "FC Mobile",
+            "wukong": "Wukong",
+            "fornite": "Fortnite",
+            "wuthering waves": "Wuthering Waves",
+            "wuther waves": "Wuthering Waves",
+            "rhythm rush lite": "Rhythm Rush Lite",
+            "red dead redemption 2": "Red Dead Redemption 2",
+            "god of war ragnarok": "God of War Ragnarok",
+        }
+
+        normalized = []
+        for g in raw_games:
+            g = g.strip()
+            if not g:
+                continue
+            normalized.append(mapping.get(g, g.title()))
+
+        return normalized if normalized else ["Unknown"]
+
+    df[new_col] = series.apply(normalize_games)
+
+    print(f"[INFO] '{original_col}' cleaned into atomic game lists.")
     return df
 
 def encode_favorite_games_binary(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Convert the 'Favorite_Game' column into binary columns for each game.
-    Handles combined entries (e.g., 'BGMI / COC / Chess').
+    Convert atomic Favorite_Game lists into binary columns.
     """
     df = df.copy()
-
     col = "Favorite_Game"
 
     if col not in df.columns:
         print(f"[WARNING] '{col}' column not found. Skipping favorite game encoding.")
         return df
 
-    # Split combined values into lists
-    games_series = (
-        df[col]
-        .astype(str)
-        .str.split(r"\s*/\s*")
-    )
+    games_series = df[col]
 
-    # Get unique game names (excluding Unknown)
     unique_games = sorted({
         game
         for games in games_series
@@ -546,24 +561,15 @@ def encode_favorite_games_binary(df: pd.DataFrame) -> pd.DataFrame:
         if game != "Unknown"
     })
 
-    # Create binary columns
     for game in unique_games:
-        safe_name = (
-            game.lower()
-            .replace(" ", "_")
-            .replace("+", "plus")
-        )
-        binary_col = f"Favorite_Game_{safe_name}"
+        safe_name = game.lower().replace(" ", "_")
+        df[f"Favorite_Game_{safe_name}"] = games_series.apply(lambda x: int(game in x))
 
-        df[binary_col] = games_series.apply(lambda x: int(game in x))
+    df["Favorite_Game_unknown"] = games_series.apply(lambda x: int(x == ["Unknown"]))
 
-    # Optional: keep Unknown as its own flag
-    df["Favorite_Game_unknown"] = (df[col] == "Unknown").astype(int)
-
-    # Drop original categorical column
     df = df.drop(columns=[col])
 
-    print("[INFO] 'Favorite_Game' converted to binary columns.")
+    print("[INFO] Favorite games correctly encoded as atomic binary columns.")
     return df
 
 def clean_game_discovery(df: pd.DataFrame) -> pd.DataFrame:
@@ -742,6 +748,30 @@ def clean_play_reason(df: pd.DataFrame) -> pd.DataFrame:
     print(f"[INFO] '{original_col}' column cleaned and expanded into one-hot reason columns.")
     return df
 
+def prune_items_by_support(df, min_support):
+    support = df.mean()
+    kept = support[support >= min_support].index
+    dropped = support[support < min_support].index
+
+    print(f"Support threshold: {min_support}")
+    print(f"Items kept: {len(kept)}")
+    print(f"Items dropped: {len(dropped)}")
+
+    return df[kept], support
+
+def prune_zero_support_items(df: pd.DataFrame) -> pd.DataFrame:
+    support = df.mean()
+
+    kept = support[support > 0].index
+    dropped = support[support == 0].index
+
+    return df[kept], dropped
+
+def one_hot_encode_df(df: pd.DataFrame) -> pd.DataFrame:
+    df = df.copy()
+
+    df = df.astype(int)
+    return df
 
 def preprocess_pipeline(filename: str) -> pd.DataFrame:
     filepath = os.path.join("data", filename)
@@ -764,6 +794,10 @@ def preprocess_pipeline(filename: str) -> pd.DataFrame:
     df = clean_game_mode_pref(df)
     df = clean_monthly_spend(df)
     df = clean_play_reason(df)
+    df, dropped = prune_zero_support_items(df)
+
+    #ensure the columns are one-hot encodec(0 and 1 values only)
+    df = one_hot_encode_df(df)
     
 
     print("[INFO] Preprocessing pipeline complete.")
