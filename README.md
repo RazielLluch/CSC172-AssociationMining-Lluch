@@ -47,14 +47,15 @@ Game developers and platform owners need to understand which combinations of pla
 - Preprocess the gaming survey dataset by cleaning responses, handling missing values, and converting all relevant features (e.g., preferred genres, platforms, competitive/casual style, spending habits, and binned playtime/hours‑per‑week) into categorical variables suitable for association rule mining.
 - Transform the preprocessed data into a transaction format (one‑hot encoded items per respondent) that can be used as input to the Apriori algorithm.​
 - Implement the Apriori algorithm (via mlxtend) to generate frequent itemsets and association rules that describe co‑occurring preferences and behaviors among gamers.​
-- Evaluate and filter the discovered rules using support, confidence, lift, and conviction to retain only statistically meaningful and interpretable patterns.​
+- Evaluate and filter the discovered rules using support, confidence, lift to retain only statistically meaningful and interpretable patterns.​
 - Interpret and visualize key rules to highlight distinct player segments (e.g., high‑playtime competitive players, casual mobile players, multi‑genre enthusiasts) and discuss potential implications for game design and marketing.
 
 ### 1.3 Scope and Limitations
 **Scope:** 
 - Analyze one cleaned gaming survey dataset where each respondent is modeled as a transaction composed of binary items representing demographics, platforms, genres, playstyle, time spent gaming, and spending patterns.
 - Apply association rule mining using the Apriori algorithm to generate frequent itemsets and association rules that describe co‑occurring player characteristics and habits.​
-- Evaluate rules with standard metrics (support, confidence, lift, conviction) and present a curated subset of interpretable rules as gamer “personas” and preference bundles. 
+- Evaluate rules with standard metrics (support, confidence, lift) and present a curated subset of interpretable rules as gamer “personas” and preference bundles. 
+
 **Limitations:** 
 - Results are limited to the sampled population of the survey and may not generalize to all gamers (other regions, age groups, or platforms).​
 - All continuous information has been discretized into bins and one‑hot encoded, so subtle numeric differences within the same bin are not modeled.​
@@ -68,57 +69,73 @@ Game developers and platform owners need to understand which combinations of pla
 **Format:** Respondent ID + full set of survey answers → transaction of binary items (one row per player in basket format).
 
 ### 2.2 Data Structure
+
 Raw format (one row per item):
-'Age_Teen', 'Age_Young_Adult', 'Age_Adult', 'Age_Mid_Adult', 'Location_India', 'Location_US', 'Location_Other', 'Gender_Female', 'Gender_Male', 'Gaming_Daily', 'Gaming_Weekly', 'Gaming_Monthly', 'Gaming_Rarely_Never', 'Gaming_Hours_0-1_hour', 'Gaming_Hours_1-5_hours', 'Gaming_Hours_5-10_hours', 'Gaming_Hours_10-20_hours', 'Gaming_Hours_20plus_hours', 'Device_PC', 'Device_Mobile', 'Device_Console', 'Device_Handheld', 'Device_Tablet', 'Genre_Action/Adventure', 'Genre_FPS', 'Genre_RPG', 'Genre_Puzzle/Strategy', 'Genre_Simulation', 'Genre_MMO', 'Genre_Sports', 'Favorite_Game_bgmi', 'Favorite_Game_call_of_duty', 'Favorite_Game_chess', 'Favorite_Game_clash_of_clans', 'Favorite_Game_efootball', 'Favorite_Game_fc_mobile', 'Favorite_Game_fortnite', 'Favorite_Game_free_fire', 'Favorite_Game_god_of_war_ragnarok', 'Favorite_Game_moba_legends', 'Favorite_Game_red_dead_redemption_2', 'Favorite_Game_rhythm_rush_lite', 'Favorite_Game_solo_leveling', 'Favorite_Game_subway', 'Favorite_Game_wukong', 'Favorite_Game_wuthering_waves', 'Favorite_Game_unknown', 'Discovery_Social_Media', 'Discovery_Gaming_Forums', 'Discovery_Friends_Family', 'Discovery_Game_Reviews', 'Discovery_YouTube_Streaming', 'Discovery_Self_Search', 'Game_Mode_Single_Player', 'Game_Mode_Multiplayer', 'Game_Mode_Both', 'Spend_lt100', 'Spend_100-500', 'Spend_500-1000', 'Spend_1000plus', 'Reason_Fun', 'Reason_Stress_Relief', 'Reason_Skills_Competition', 'Reason_Socialize', 'Reason_Learning', 'Reason_Other'
+
+`'Age_Teen'`, `'Age_Young_Adult'`, `'Age_Adult'`, `'Age_Mid_Adult'`, `'Location_India'`, `'Location_US'`, `'Location_Other'`, `'Gender_Female'`, `'Gender_Male'`, `'Gaming_Daily'`, `'Gaming_Weekly'`, `'Gaming_Monthly'`, `'Gaming_Rarely_Never'`, `'Gaming_Hours_0-1_hour'`, `'Gaming_Hours_1-5_hours'`, `'Gaming_Hours_5-10_hours'`, `'Gaming_Hours_10-20_hours'`, `'Gaming_Hours_20plus_hours'`, `'Device_PC'`, `'Device_Mobile'`, `'Device_Console'`, `'Device_Handheld'`, `'Device_Tablet'`, `'Genre_Action/Adventure'`, `'Genre_FPS'`, `'Genre_RPG'`, `'Genre_Puzzle/Strategy'`, `'Genre_Simulation'`, `'Genre_MMO'`, `'Genre_Sports'`, `'Favorite_Game_bgmi'`, `'Favorite_Game_call_of_duty'`, `'Favorite_Game_chess'`, `'Favorite_Game_clash_of_clans'`, `'Favorite_Game_efootball'`, `'Favorite_Game_fc_mobile'`, `'Favorite_Game_fortnite'`, `'Favorite_Game_free_fire'`, `'Favorite_Game_god_of_war_ragnarok'`, `'Favorite_Game_moba_legends'`, `'Favorite_Game_red_dead_redemption_2'`, `'Favorite_Game_rhythm_rush_lite'`, `'Favorite_Game_solo_leveling'`, `'Favorite_Game_subway'`, `'Favorite_Game_wukong'`, `'Favorite_Game_wuthering_waves'`, `'Favorite_Game_unknown'`, `'Discovery_Social_Media'`, `'Discovery_Gaming_Forums'`, `'Discovery_Friends_Family'`, `'Discovery_Game_Reviews'`, `'Discovery_YouTube_Streaming'`, `'Discovery_Self_Search'`, `'Game_Mode_Single_Player'`, `'Game_Mode_Multiplayer'`, `'Game_Mode_Both'`, `'Spend_lt100'`, `'Spend_100-500'`, `'Spend_500-1000'`, `'Spend_1000plus'`, `'Reason_Fun'`, `'Reason_Stress_Relief'`, `'Reason_Skills_Competition'`, `'Reason_Socialize'`, `'Reason_Learning'`, `'Reason_Other'`
 
 First three rows:
-1 0 0 0 1 0 0 0 1 1 0 0 0 0 0 0 1 0 0 1 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 1 1 0 0 0 0 0 0 1 1 0 0 0 1 1 0 0 0 0
-0 1 0 0 1 0 0 0 1 0 0 0 1 1 0 0 0 0 0 1 0 0 0 0 0 0 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 1 0 0 0 0 0 1 0 0 1 0 0 0 0 0 1 0 0 0
-0 1 0 0 1 0 0 0 1 0 0 0 1 0 0 0 0 1 0 0 1 0 0 0 1 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 1 0 0 1 0 0 1 0 0 0 0 0
+
+- `1 0 0 0 1 0 0 0 1 1 0 0 0 0 0 0 1 0 0 1 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 1 1 0 0 0 0 0 0 1 1 0 0 0 1 1 0 0 0 0`
+
+- `0 1 0 0 1 0 0 0 1 0 0 0 1 1 0 0 0 0 0 1 0 0 0 0 0 0 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 1 0 0 0 0 0 1 0 0 1 0 0 0 0 0 1 0 0 0`
+
+- `0 1 0 0 1 0 0 0 1 0 0 0 1 0 0 0 0 1 0 0 1 0 0 0 1 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 1 0 0 1 0 0 1 0 0 0 0 0`
 
 Transaction format (one row per basket):
-[
-  ['Age_YoungAdult', 'Location_India', 'Genre_FPS', 'Genre_MOBA', 'Platform_PC', 'Platform_Mobile', 'Playtime_High'],
-  ['Age_Teen', 'Location_USA', 'Genre_MOBA', 'Genre_RPG', 'Platform_Console', 'SpendsMoney_Yes']
-]
+
+
+  - `['Age_YoungAdult', 'Location_India', 'Genre_FPS', 'Genre_MOBA', 'Platform_PC', 'Platform_Mobile', 'Playtime_High']`,
+
+  - `['Age_Teen', 'Location_USA', 'Genre_MOBA', 'Genre_RPG', 'Platform_Console', 'SpendsMoney_Yes']`
+
 
 
 ### 2.3 Sample Transactions
 Transaction 1: 
 - Length: 14
 - Items:
-['Age_Young_Adult', 'Location_India', 'Gender_Male', 'Gaming_Weekly', 'Gaming_Hours_1-5_hours', 'Device_Mobile', 'Genre_Sports', 'Favorite_Game_efootball', 'Discovery_Social_Media', 'Game_Mode_Both', 'Spend_lt100', 'Reason_Fun']
+
+  `['Age_Young_Adult', 'Location_India', 'Gender_Male', 'Gaming_Weekly', 'Gaming_Hours_1-5_hours', 'Device_Mobile', 'Genre_Sports', 'Favorite_Game_efootball', 'Discovery_Social_Media', 'Game_Mode_Both', 'Spend_lt100', 'Reason_Fun']`
 
 Transaction 5: 
 - Length: 18
 - Items:
-['Age_Teen', 'Location_India', 'Gender_Female', 'Gaming_Daily', 'Gaming_Hours_1-5_hours', 'Device_PC', 'Device_Mobile', 'Genre_Action/Adventure', 'Genre_FPS', 'Genre_RPG', 'Favorite_Game_solo_leveling', 'Discovery_Friends_Family', 'Game_Mode_Multiplayer', 'Spend_lt100', 'Reason_Fun', 'Reason_Stress_Relief', 'Reason_Skills_Competition', 'Reason_Socialize']
+
+  `['Age_Teen', 'Location_India', 'Gender_Female', 'Gaming_Daily', 'Gaming_Hours_1-5_hours', 'Device_PC', 'Device_Mobile', 'Genre_Action/Adventure', 'Genre_FPS', 'Genre_RPG', 'Favorite_Game_solo_leveling', 'Discovery_Friends_Family', 'Game_Mode_Multiplayer', 'Spend_lt100', 'Reason_Fun', 'Reason_Stress_Relief', 'Reason_Skills_Competition', 'Reason_Socialize']`
 
 Transaction 500: 
 - Length: 16
 - Items:
-['Age_Young_Adult', 'Location_Other', 'Gender_Female', 'Gaming_Daily', 'Gaming_Hours_10-20_hours', 'Device_Console', 'Genre_FPS', 'Genre_RPG', 'Genre_Simulation', 'Favorite_Game_call_of_duty', 'Discovery_Gaming_Forums', 'Discovery_YouTube_Streaming', 'Game_Mode_Multiplayer', 'Spend_lt100', 'Reason_Stress_Relief', 'Reason_Socialize']
+
+  `['Age_Young_Adult', 'Location_Other', 'Gender_Female', 'Gaming_Daily', 'Gaming_Hours_10-20_hours', 'Device_Console', 'Genre_FPS', 'Genre_RPG', 'Genre_Simulation', 'Favorite_Game_call_of_duty', 'Discovery_Gaming_Forums', 'Discovery_YouTube_Streaming', 'Game_Mode_Multiplayer', 'Spend_lt100', 'Reason_Stress_Relief', 'Reason_Socialize']`
 
 
 ## 3. Methodology
 
 ### 3.1 Data Preprocessing
-1. **Duplicate Row Handling:** No duplicate rows were found
-2. **Missing Value Handling:** Some columns had duplicates, specifically the latter columns like "What is your favorite game", "What genres of video games do you play? (Check all that apply)", "Which device do you play games on the most?(Check all that apply)", etc.., These said columns often had missing values in its duplicate column, or had different values from the original column. Since the original columns(first occurrence of the column) had complete data, these original columns were kept, and the duplicate columns and their data(mostly missing or inconsistent) were dropped.
-3. **One-Hot Encoding:** Converted categorical columns into binary columns suitable for association mining:
+1. **Duplicate Row Handling:** 
+    
+    No duplicate rows were found
+2. **Missing Value Handling:** 
 
-- "Gender" : ['Gender_Male', 'Gender_Female'],
-- "Age" : ['Age_Teen', 'Age_Young_Adult', 'Age_Adult', 'Age_Mid_Adult'],
-- "Location" : ['Location_India', 'Location_US', 'Location_Other'],
-- "Frequency" : ['Gaming_Daily', 'Gaming_Weekly', 'Gaming_Monthly', 'Gaming_Rarely_Never'],
-- "Hours" : ['Gaming_Hours_0-1_hour', 'Gaming_Hours_1-5_hours', 'Gaming_Hours_5-10_hours', 'Gaming_Hours_10-20_hours', 'Gaming_Hours_20plus_hours'],
-- "Device" : ['Device_PC', 'Device_Mobile', 'Device_Console', 'Device_Handheld', 'Device_Tablet'],
-- "Genre" : ['Genre_Action/Adventure', 'Genre_FPS', 'Genre_RPG', 'Genre_Puzzle/Strategy', 'Genre_Simulation', 'Genre_MMO', 'Genre_Sports'],
-- "Favorite" : ['Favorite_Game_bgmi', 'Favorite_Game_call_of_duty', 'Favorite_Game_chess', 'Favorite_Game_clash_of_clans', 'Favorite_Game_efootball', 'Favorite_Game_fc_mobile', 'Favorite_Game_fortnite', 'Favorite_Game_free_fire', 'Favorite_Game_god_of_war_ragnarok', 'Favorite_Game_moba_legends', 'Favorite_Game_red_dead_redemption_2', 'Favorite_Game_rhythm_rush_lite', 'Favorite_Game_solo_leveling', 'Favorite_Game_subway', 'Favorite_Game_wukong', 'Favorite_Game_wuthering_waves', 'Favorite_Game_unknown'],
-- "Discovery" : ['Discovery_Social_Media', 'Discovery_Gaming_Forums', 'Discovery_Friends_Family', 'Discovery_Game_Reviews', 'Discovery_YouTube_Streaming', 'Discovery_Self_Search', 'Game_Mode_Single_Player'],
-- "Game Mode" : ['Game_Mode_Single_Player', 'Game_Mode_Multiplayer', 'Game_Mode_Both'],
-- "Spending" : ['Spend_lt100', 'Spend_100-500', 'Spend_500-1000', 'Spend_1000plus'],
-- "Reason" : ['Reason_Fun', 'Reason_Stress_Relief', 'Reason_Skills_Competition', 'Reason_Socialize', 'Reason_Learning', 'Reason_Other']
+    Some columns had duplicates, specifically the latter columns like "What is your favorite game", "What genres of video games do you play? (Check all that apply)", "Which device do you play games on the most?(Check all that apply)", etc.., These said columns often had missing values in its duplicate column, or had different values from the original column. Since the original columns(first occurrence of the column) had complete data, these original columns were kept, and the duplicate columns and their data(mostly missing or inconsistent) were dropped.
+3. **One-Hot Encoding:** 
+
+    Converted categorical columns into binary columns suitable for association mining:
+
+    - "Gender" : [`'Gender_Male'`, `'Gender_Female'`],
+    - "Age" : [`'Age_Teen'`, `'Age_Young_Adult'`, `'Age_Adult'`, `'Age_Mid_Adult'`],
+    - "Location" : [`'Location_India'`, `'Location_US'`, `'Location_Other'`],
+    - "Frequency" : [`'Gaming_Daily'`, `'Gaming_Weekly'`, `'Gaming_Monthly'`, `'Gaming_Rarely_Never'`],
+    - "Hours" : [`'Gaming_Hours_0-1_hour'`, `'Gaming_Hours_1-5_hours'`, `'Gaming_Hours_5-10_hours'`, `'Gaming_Hours_10-20_hours'`, `'Gaming_Hours_20plus_hours'`],
+    - "Device" : [`'Device_PC'`, `'Device_Mobile'`, `'Device_Console'`, `'Device_Handheld'`, `'Device_Tablet'`],
+    - "Genre" : [`'Genre_Action/Adventure'`, `'Genre_FPS'`, `'Genre_RPG'`, `'Genre_Puzzle/Strategy'`, `'Genre_Simulation'`, `'Genre_MMO'`, `'Genre_Sports'`],
+    - "Favorite" : [`'Favorite_Game_bgmi'`, `'Favorite_Game_call_of_duty'`, `'Favorite_Game_chess'`, `'Favorite_Game_clash_of_clans'`, `'Favorite_Game_efootball'`, `'Favorite_Game_fc_mobile'`, `'Favorite_Game_fortnite'`, `'Favorite_Game_free_fire'`, `'Favorite_Game_god_of_war_ragnarok'`, `'Favorite_Game_moba_legends'`, `'Favorite_Game_red_dead_redemption_2'`, `'Favorite_Game_rhythm_rush_lite'`, `'Favorite_Game_solo_leveling'`, `'Favorite_Game_subway'`, `'Favorite_Game_wukong'`, `'Favorite_Game_wuthering_waves'`, `'Favorite_Game_unknown'`],
+    - "Discovery" : [`'Discovery_Social_Media'`, `'Discovery_Gaming_Forums'`, `'Discovery_Friends_Family'`, `'Discovery_Game_Reviews'`, `'Discovery_YouTube_Streaming'`, `'Discovery_Self_Search'`, `'Game_Mode_Single_Player'`],
+    - "Game Mode" : [`'Game_Mode_Single_Player'`, `'Game_Mode_Multiplayer'`, `'Game_Mode_Both'`],
+    - "Spending" : [`'Spend_lt100'`, `'Spend_100-500'`, `'Spend_500-1000'`, `'Spend_1000plus'`],
+    - "Reason" : [`'Reason_Fun'`, `'Reason_Stress_Relief'`, `'Reason_Skills_Competition'`, `'Reason_Socialize'`, `'Reason_Learning'`, `'Reason_Other'`]
 
 4. **Feature Reduction / Cleaning:** Removed unnecessary columns such as timestamps, redundant text responses, and original categorical columns after encoding. Likewise removed columns that had no items in all rows, which is somewhat an artifact of the pre-processing, since the pre-processing included the automatic encoding of items like "Gender_Unknown", "Spending_Unknown", etc., items whos existence are simply assumptions based on the present data. Since, these were not present in the original unprocessed dataset, then these items did not occur in the final processed dataset, and were therefore dropped
 5. **Final Dataset:** Dataset ready for association mining with fully binary features suitable for Apriori algorithm.
@@ -128,8 +145,8 @@ Transaction 500:
 |--------|----------|----------------|
 | Rows (Respondents) | 500 | 500 |
 | Columns (Features) | Original survey columns | Binary columns after preprocessing (66) |
-| Duplicates | None | Removed |
-| Missing Values | None | None |
+| Duplicates | None | None |
+| Missing Values | From duplicate columns | Dropped Columns |
 
 ### 3.2 Exploratory Data Analysis
 #### Correlation Analysis
@@ -191,7 +208,8 @@ Transaction 500:
     | min | 0.306000 | 0.306000 | 0.250000 | 0.374251 | 0.900161 |
     | max | 0.668000 | 0.668000 | 0.400000 | 0.868263 | 1.456818 |
 
-- After filtering, 71 out of the original 116 rules were left.
+- Further filtering was done to remove rule sets whos antecedents and consequents are the exact vice-versa of one another. sine support and lift are the same regardless of the order of the association rule, the rule-pair whos vice-versa had the lower confidence was dropped in order get relevant results from this
+- After filtering, 42 out of the original 116 rules were left.
 
 ### 3.4 Evaluation Metrics
 - **Support** 
@@ -200,9 +218,9 @@ Transaction 500:
 
     | | support | confidence | lift |
     | --- | --- | --- | --- |
-    | count | 96 | 96 | 96 |
-    | mean | 0.293127 | 0.585820 | 1.105522 | 
-    | min | 0.250000 | 0.407186 | 1.000155 |
+    | count | 42 | 42 | 42 |
+    | mean | 0.291000	 | 0.647385 | 1.097680 | 
+    | min | 0.250000 | 0.490566 | 1.000155 |
     | max | 0.400000 | 0.868263 | 1.456818 |
 
 ## 4. Results
@@ -255,6 +273,14 @@ Transaction 500:
   - Gender_Female -> Reason_Stress_Relief
   - Gender_Female -> Genre_Action/Adventure
   - Gender_Female -> Game_Mode_Both
+
+- **Age Based Rules:**
+  
+  -No Associations Found
+
+- **Location Based Rules:**
+  
+  -No Associations Found
 
 ### 4.2 Key Visualizations
 #### All Association Rules
