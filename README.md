@@ -150,11 +150,11 @@ Transaction 500:
 
 ### 3.2 Exploratory Data Analysis
 #### Correlation Analysis
-![Correlation Analysis](data/corr.png)
+![Correlation Analysis](outputs/corr.png)
 #### Top and Bottom Item Supports
 ![Item Support Table](data/item_support_table.png)
 #### Transaction Lengths
-![Transaction Lengths Table](data/transaction_length_summary.png)
+![Transaction Lengths Table](outputs/transaction_length_summary.png)
 #### Sparsity = 76.073%
 
 
