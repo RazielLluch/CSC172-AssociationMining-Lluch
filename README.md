@@ -427,6 +427,17 @@ Despite these limitations, the work demonstrates the value of association rule m
 
 ## References
 
-## Appendix: Full Results
+1. Zammitto Gaming Preferences Study
+Zammitto, V. L. (2010). Gamers' personality and their gaming preferences [Master's thesis, Simon Fraser University]. Summit SFU. https://summit.sfu.ca/item/11349
 
+2. Small Data Player Preferences Study
+Vieira, C., Alves, P., Alves, J., & Perrotta, A. (2023). Small data as a tool to predict player game design preferences: A qualitative pilot study. Proceedings of the 32nd International Conference on Information Systems Development (ISD2023). Universidade Católica Portuguesa. https://ciencia.ucp.pt/files/94850347/92080491.pdf
 
+3. Association Rule Mining Survey
+Kaur, J., & Madan, N. (2015). Association rule mining: A survey. International Journal of Hybrid Information Technology, 8(7), 239–242. https://doi.org/10.14257/ijhit.2015.8.7.22
+
+4. MLxtend Library
+Raschka, S. (2018). MLxtend: Providing machine learning and data science utilities and extensions to Python's scientific computing stack. Journal of Open Source Software, 3(24), 638. https://doi.org/10.21105/joss.00638
+
+5. BrainHex Gamer Typology
+Nacke, L. E., Bateman, C., & Mandryk, R. L. (2014). BrainHex: A neurobiological gamer typology survey. Entertainment Computing, 5(1), 55–62. https://doi.org/10.1016/j.entcom.2013.06.002
