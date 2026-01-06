@@ -425,6 +425,9 @@ Despite these limitations, the work demonstrates the value of association rule m
 
 ## 7. Video Presentation
 
+[Video: [CSC172_Lluch_Final.mp4](CSC172_Lluch_Final.mp4)]
+
+
 ## References
 
 1. Zammitto Gaming Preferences Study
